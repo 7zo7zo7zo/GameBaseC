@@ -52,11 +52,8 @@ int gameLoop() {
 	SDL_Event event;
 	Uint32 lastTick = SDL_GetTicks();
 	
-	//int tps = 101;
-	//int maxFPS = 101;
-	//int maxFPS = 201;
-	int tps = 101;
-	int maxFPS = 101;
+	int tps = 60;
+	int maxFPS = 100;
 	float frameDelta = 1000.0f / maxFPS;
 	float tickDelta = 1000.0f / tps;
 	float timer = 0;
@@ -70,7 +67,6 @@ int gameLoop() {
 	float diffF;
 	bool fpsUncapped = false;
 	bool tpsUncapped = false;
-
 
 	while(running) {
 		// input
@@ -86,14 +82,15 @@ int gameLoop() {
 			}
 		}
 		// tick
-		if(tpsUncapped || elapsedT > tickDelta) {
+		if(tpsUncapped || elapsedT >= tickDelta) {
 			tick(elapsedT);
 			ticks++;
 			elapsedT = 0;
 		}
 		diffT = tickDelta - elapsedT;
+		if(diffT < 0) diffT = 0;
 		// render
-		if(fpsUncapped || elapsedF > frameDelta) {
+		if(fpsUncapped || elapsedF >= frameDelta) {
 			SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 			SDL_RenderClear(renderer);
 			render(elapsedF);
@@ -101,13 +98,13 @@ int gameLoop() {
 			SDL_RenderPresent(renderer);
 			elapsedF = 0;
 		}
-		diffF = frameDelta - elapsedF;
+		if(diffF < 0) diffF = 0;
 		// delay
 		if(fpsUncapped || tpsUncapped) {
 			SDL_Delay(1);
 		}
 		else {
-			if(diffF < diffT) {
+			if(diffF <= diffT) {
 				SDL_Delay(diffF);
 			}
 			else {
