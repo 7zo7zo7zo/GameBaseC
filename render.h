@@ -1,6 +1,6 @@
 #ifndef RENDER_H
 #define RENDRE_H
 
-void render();
+void render(float delta);
 
 #endif

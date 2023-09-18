@@ -4,6 +4,7 @@
 #include "engine.h"
 #include "tick.h"
 #include "render.h"
+#include "input.h"
 
 int width = 800;
 int height = 600;
@@ -51,52 +52,79 @@ int gameLoop() {
 	SDL_Event event;
 	Uint32 lastTick = SDL_GetTicks();
 	
-	float tps = 60.0f;
-	float frameDelta = 1000.0f / tps;
+	//int tps = 101;
+	//int maxFPS = 101;
+	//int maxFPS = 201;
+	int tps = 101;
+	int maxFPS = 101;
+	float frameDelta = 1000.0f / maxFPS;
+	float tickDelta = 1000.0f / tps;
 	float timer = 0;
 	int ticks = 0;
 	int frames = 0;
 	running = true;
-	Uint32 currTick;
+	//Uint32 currTick;
+	float elapsedT = 0;
+	float elapsedF = 0;
+	float diffT;
+	float diffF;
+	bool fpsUncapped = false;
+	bool tpsUncapped = false;
+
 
 	while(running) {
+		// input
 		while (SDL_PollEvent(&event)) {
 			switch(event.type) {
 				case SDL_QUIT:
 					running = false;
 					break;
 				case SDL_KEYDOWN:
-					fprintf(stdout, "%d\n", event.key.keysym.sym);
+					input(event.key.keysym.sym);
+					//fprintf(stdout, "%d\n", event.key.keysym.sym);
 					break;
 			}
 		}
-		currTick = SDL_GetTicks();
-		float elapsed = currTick - lastTick;
-		if(frameDelta > elapsed) {
-			//fprintf(stdout, "%f\n", frameDelta - elapsed);
-			SDL_Delay(frameDelta - elapsed);
-		}
-		currTick = SDL_GetTicks();
-
 		// tick
-		timer += currTick - lastTick;
-		tick();
-		ticks++;
-
+		if(tpsUncapped || elapsedT > tickDelta) {
+			tick(elapsedT);
+			ticks++;
+			elapsedT = 0;
+		}
+		diffT = tickDelta - elapsedT;
 		// render
-		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-		SDL_RenderClear(renderer);
-		render();
-		frames++;
-		SDL_RenderPresent(renderer);
+		if(fpsUncapped || elapsedF > frameDelta) {
+			SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+			SDL_RenderClear(renderer);
+			render(elapsedF);
+			frames++;
+			SDL_RenderPresent(renderer);
+			elapsedF = 0;
+		}
+		diffF = frameDelta - elapsedF;
+		// delay
+		if(fpsUncapped || tpsUncapped) {
+			SDL_Delay(1);
+		}
+		else {
+			if(diffF < diffT) {
+				SDL_Delay(diffF);
+			}
+			else {
+				SDL_Delay(diffT);
+			}
+		}
 
-		lastTick = currTick;
+		timer += SDL_GetTicks() - lastTick;
 		if(timer >= 1000) {
 			fprintf(stdout, "%d tps and %d fps\n", ticks, frames);
 			ticks = 0	;
 			frames = 0;
 			timer -= 1000;
 		}
+		elapsedT += SDL_GetTicks() - lastTick;
+		elapsedF += SDL_GetTicks() - lastTick;
+		lastTick = SDL_GetTicks();
 	}
 	if(renderer) SDL_DestroyRenderer(renderer);
 	if(window) SDL_DestroyWindow(window);

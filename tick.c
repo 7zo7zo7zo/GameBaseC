@@ -1,5 +1,5 @@
 #include "tick.h"
 
-void tick() {
+void tick(float delta) {
 	
 }

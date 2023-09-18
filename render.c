@@ -6,6 +6,6 @@
 #include "assets.h"
 
 
-void render() {
+void render(float delta) {
 
 }
