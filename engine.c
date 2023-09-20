@@ -98,6 +98,7 @@ int gameLoop() {
 			SDL_RenderPresent(renderer);
 			elapsedF = 0;
 		}
+		diffF = frameDelta - elapsedF;
 		if(diffF < 0) diffF = 0;
 		// delay
 		if(fpsUncapped || tpsUncapped) {
